@@ -29,13 +29,18 @@
                     <label>Password Confirm</label>
                 </div>
                 <div class="form-floating">
-                    <select v-model="user_type" name="user_type" size="3">
+                    <!-- <select v-model="user_type" name="user_type" size="3">
                         <option value="1">Banker</option>
                         <option value="2">Customer</option>
                         <option value="3">Funder</option>
-                    </select>
+                    </select> -->
+                    <v-select v-model="user_type" :items="items" label="User type" data-vv-name="select" required>
+                    </v-select>
                 </div>
-                <button class="w-100 btn btn-lg btn-primary" type="submit">Submit</button>
+                <button v-if="!loading" class="w-100 btn btn-lg btn-primary" type="submit" :disabled="loading">
+                    Submit
+                </button>
+                <semipolar-spinner v-if="loading" :animation-duration="2000" :size="65" color="#ff1d5e" />
             </form>
         </main>
     </v-app>
@@ -43,9 +48,13 @@
 
 <script>
 import axios from "axios";
+import { SemipolarSpinner } from "epic-spinners";
 
 export default {
     name: "Register",
+    components: {
+        SemipolarSpinner,
+    },
     data() {
         return {
             user_name: "",
@@ -53,10 +62,18 @@ export default {
             password: "",
             password_confirm: "",
             user_type: "",
+            loading: false,
+            items: ["Banker", "Customer", "Funder"],
         };
     },
     methods: {
         submit() {
+            this.loading = true;
+            const USERTYPES = {
+                Banker: 1,
+                Customer: 2,
+                Funder: 3,
+            };
             const registerRequest = {
                 method: "post",
                 url: "api/v1/dj-rest-auth/registration/",
@@ -65,17 +82,19 @@ export default {
                     email: this.email,
                     password1: this.password,
                     password2: this.password_confirm,
-                    user_type: Number(this.user_type),
+                    user_type: Number(USERTYPES[this.user_type]),
                 },
             };
             axios(registerRequest)
                 .then((res) => {
-                    console.log(res);
+                    this.$toast.success("Successfully created");
                     this.$router.push("/login");
                 })
                 .catch((error) => {
                     console.log(error);
+                    this.$toast.error("Error creating account");
                 });
+            this.loading = false;
         },
     },
 };
