@@ -42,10 +42,10 @@
 </template>
 
 <script>
-import axios from "axios";
+import axios from 'axios';
 
 export default {
-    name: "CreateFund",
+    name: 'CreateFund',
     data() {
         return {
             fundOptions: [],
@@ -58,10 +58,10 @@ export default {
     },
     methods: {
         async loadFundOptions() {
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem('token');
 
             const fundOptions = {
-                method: "get",
+                method: 'get',
                 url: `fund-options/`,
                 headers: {
                     Authorization: `Token ${token}`,
@@ -75,35 +75,31 @@ export default {
 
                 // Sort the list descending.
                 options = options.sort(function(a, b) {
-                    return b["duration"] - a["duration"];
+                    return b['duration'] - a['duration'];
                 });
 
                 // Keep the fund options to use when changing plans.
                 this.fundOptions = options;
             } catch (error) {
-                console.log("Error getting fund options " + error);
+                console.log(error);
+                this.$toast.error('Error getting fund options ' + error);
             }
         },
         async createFund(fundOption) {
-            console.log(fundOption.minimum_amount - 1);
-            console.log(this.requested_amount < fundOption.minimum_amount - 1);
-            console.log(fundOption.maximum_amount);
-            console.log(this.requested_amount > fundOption.maximum_amount);
             if (
                 Number(this.requested_amount) < Number(fundOption.minimum_amount - 1) ||
                 Number(this.requested_amount) > Number(fundOption.maximum_amount)
             ) {
-                console.log("Wrong");
                 this.$toast.error("Fund option selected doesn't support amount requested.");
                 return;
             }
 
-            const token = localStorage.getItem("token");
-            const user = JSON.parse(localStorage.getItem("user"));
+            const token = localStorage.getItem('token');
+            const user = JSON.parse(localStorage.getItem('user'));
 
             this.loading = true;
             const createFund = {
-                method: "post",
+                method: 'post',
                 url: `funds/`,
                 headers: {
                     Authorization: `Token ${token}`,
@@ -117,10 +113,9 @@ export default {
 
             try {
                 const response = await axios(createFund);
-                console.log(response);
-                this.$toast.success("Successfully Requested Fund.");
+                this.$toast.success('Successfully Requested Fund.');
             } catch (error) {
-                this.$toast.error("Creating fund Error.");
+                this.$toast.error('Creating fund Error.');
             }
             this.loading = false;
         },

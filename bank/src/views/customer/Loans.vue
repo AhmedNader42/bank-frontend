@@ -64,11 +64,11 @@
 </template>
 
 <script>
-import axios from "axios";
-import { loadStripe } from "@stripe/stripe-js";
+import axios from 'axios';
+import { loadStripe } from '@stripe/stripe-js';
 
 export default {
-    name: "Loans",
+    name: 'Loans',
     data() {
         return {
             loans: [],
@@ -76,19 +76,19 @@ export default {
             currentAmortization: [],
             loanHeaders: [
                 {
-                    text: "Amount",
-                    align: "start",
+                    text: 'Amount',
+                    align: 'start',
                     sortable: true,
-                    value: "amount",
+                    value: 'amount',
                 },
-                { text: "Started", value: "started" },
-                { text: "Status", value: "status" },
-                { text: "", value: "data-table-expand" },
+                { text: 'Started', value: 'started' },
+                { text: 'Status', value: 'status' },
+                { text: '', value: 'data-table-expand' },
             ],
             loanStatus: {
-                1: "PENDING",
-                2: "APPROVED",
-                3: "DENIED",
+                1: 'PENDING',
+                2: 'APPROVED',
+                3: 'DENIED',
             },
             expanded: [],
             singleExpand: true,
@@ -96,17 +96,16 @@ export default {
     },
     async mounted() {
         if (this.$route.query.status == 0) {
-            this.$toast.success("Payment successful!");
+            this.$toast.success('Payment successful!');
         } else if (this.$route.query.status == 1) {
-            this.$toast.error("Payment Error!");
+            this.$toast.error('Payment Error!');
         }
         await this.loadLoanOptions();
     },
     methods: {
         async payLoanSubscription(loan) {
-            console.log(loan);
             const stripe = await loadStripe(
-                "pk_test_51JQJmIDP01ev1pnVKxlhzwoTRpETICHmuMonHTEVtzUVZGCv9SzpsmaBd16GacewvzrRgpueevp27ewmKBU7cKQK007bcbJ05N"
+                'pk_test_51JQJmIDP01ev1pnVKxlhzwoTRpETICHmuMonHTEVtzUVZGCv9SzpsmaBd16GacewvzrRgpueevp27ewmKBU7cKQK007bcbJ05N'
             );
             const { error } = await stripe.redirectToCheckout({
                 lineItems: [
@@ -115,17 +114,16 @@ export default {
                         quantity: 1,
                     },
                 ],
-                mode: "subscription",
-                successUrl: "http://localhost:8080/myloans?status=0",
-                cancelUrl: "http://localhost:8080/myloans?status=1",
+                mode: 'subscription',
+                successUrl: 'http://localhost:8080/myloans?status=0',
+                cancelUrl: 'http://localhost:8080/myloans?status=1',
             });
-            console.log(error);
         },
         async loadLoanOptions() {
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem('token');
 
             const loanOptions = {
-                method: "get",
+                method: 'get',
                 url: `loan-options/`,
                 headers: {
                     Authorization: `Token ${token}`,
@@ -139,7 +137,7 @@ export default {
 
                 // Sort the list descending.
                 options = options.sort(function(a, b) {
-                    return b["duration"] - a["duration"];
+                    return b['duration'] - a['duration'];
                 });
 
                 // Keep the loan options to use when changing plans.
@@ -148,16 +146,16 @@ export default {
                 // Start loading the user loans
                 this.loadLoans();
             } catch (error) {
-                console.log("Error getting loan options " + error);
+                console.log(error);
+                this.$toast.error('Error getting loan options ' + error);
             }
         },
         async loadLoans() {
-            console.log(this.loans);
-            const user = JSON.parse(localStorage.getItem("user"));
-            const token = localStorage.getItem("token");
+            const user = JSON.parse(localStorage.getItem('user'));
+            const token = localStorage.getItem('token');
 
             const loadUserLoans = {
-                method: "get",
+                method: 'get',
                 url: `customer/${user.id}/`,
                 headers: {
                     Authorization: `Token ${token}`,
@@ -165,13 +163,12 @@ export default {
             };
             try {
                 let { data } = await axios(loadUserLoans);
-                console.log(data);
                 let formattedLoans = [];
                 data.forEach((loan) => {
                     formattedLoans.push({
                         id: loan.id,
                         amount: loan.amount,
-                        started: loan.started.split("T")[0],
+                        started: loan.started.split('T')[0],
                         status: this.loanStatus[loan.status],
                         payment_url: loan.payment_url,
                         option: this.getPlanWithID(loan.option),
@@ -179,13 +176,14 @@ export default {
                 });
                 this.loans = formattedLoans;
             } catch (error) {
-                console.log("Error");
+                console.log(error);
+                this.$toast.error('Error loading loans');
             }
         },
         getPlanWithID(id) {
             for (let i = 0; i < this.loanOptions.length; i++) {
                 let loanOption = this.loanOptions[i];
-                if (loanOption["id"] == id) {
+                if (loanOption['id'] == id) {
                     return loanOption;
                 }
             }
@@ -198,21 +196,16 @@ export default {
                 slot.expand(!slot.isExpanded);
             }
 
-            console.log(loan);
             let amount = parseFloat(loan.amount);
             let interestRate = parseFloat(loan.option.interest_rate) / 100;
             let terms = parseInt(loan.option.duration);
             let paymentDate = new Date(loan.started);
-            console.log(paymentDate);
-            console.log(typeof paymentDate);
 
             //Calculate the per month interest rate
             let monthlyRate = interestRate / 12;
-            console.log("MONTHLY RATE : " + monthlyRate);
 
             //Calculate the payment
             let payment = amount * (monthlyRate / (1 - Math.pow(1 + monthlyRate, -terms)));
-            console.log("PAYMENT : " + payment);
 
             let amortizationData = [];
             for (var count = 0; count < terms; ++count) {
@@ -224,31 +217,30 @@ export default {
                 let monthlyPrincipal = 0;
 
                 //display the month number in col 1 using the loop count variable
-                const options = { day: "numeric", month: "long", year: "numeric" };
-                row["number"] = new Intl.DateTimeFormat("en-US", options).format(paymentDate);
+                const options = { day: 'numeric', month: 'long', year: 'numeric' };
+                row['number'] = new Intl.DateTimeFormat('en-US', options).format(paymentDate);
                 paymentDate.setMonth(paymentDate.getMonth() + 1);
 
                 //code for displaying in loop amount
-                row["amount"] = amount.toFixed(2);
+                row['amount'] = amount.toFixed(2);
 
                 //calc the in-loop interest amount and display
                 interest = amount * monthlyRate;
-                row["interest"] = interest.toFixed(2);
+                row['interest'] = interest.toFixed(2);
 
                 //calc the in-loop monthly principal and display
                 monthlyPrincipal = payment - interest;
-                row["principal"] = monthlyPrincipal.toFixed(2);
+                row['principal'] = monthlyPrincipal.toFixed(2);
 
                 //update the amount for each loop iteration
                 amount = amount - monthlyPrincipal;
 
                 amortizationData.push(row);
             }
-            console.log(amortizationData);
 
-            this.currentAmortization["monthly_payment"] = payment.toFixed(2);
-            this.currentAmortization["total_payment"] = (payment * terms).toFixed(2);
-            this.currentAmortization["table"] = amortizationData;
+            this.currentAmortization['monthly_payment'] = payment.toFixed(2);
+            this.currentAmortization['total_payment'] = (payment * terms).toFixed(2);
+            this.currentAmortization['table'] = amortizationData;
         },
     },
 };

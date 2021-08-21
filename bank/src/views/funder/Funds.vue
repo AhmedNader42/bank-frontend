@@ -80,11 +80,11 @@
 </template>
 
 <script>
-import axios from "axios";
-import { loadStripe } from "@stripe/stripe-js";
+import axios from 'axios';
+import { loadStripe } from '@stripe/stripe-js';
 
 export default {
-    name: "Funds",
+    name: 'Funds',
     data() {
         return {
             funds: [],
@@ -92,19 +92,19 @@ export default {
             currentAmortization: [],
             fundHeaders: [
                 {
-                    text: "Amount",
-                    align: "start",
+                    text: 'Amount',
+                    align: 'start',
                     sortable: true,
-                    value: "amount",
+                    value: 'amount',
                 },
-                { text: "Started", value: "started" },
-                { text: "Status", value: "status" },
-                { text: "", value: "data-table-expand" },
+                { text: 'Started', value: 'started' },
+                { text: 'Status', value: 'status' },
+                { text: '', value: 'data-table-expand' },
             ],
             fundStatus: {
-                1: "PENDING",
-                2: "APPROVED",
-                3: "DENIED",
+                1: 'PENDING',
+                2: 'APPROVED',
+                3: 'DENIED',
             },
             expanded: [],
             singleExpand: true,
@@ -112,20 +112,17 @@ export default {
     },
     async mounted() {
         if (this.$route.query.status == 0) {
-            this.$toast.success("Payment successful!");
+            this.$toast.success('Payment successful!');
         } else if (this.$route.query.status == 1) {
-            this.$toast.error("Payment Error!");
+            this.$toast.error('Payment Error!');
         }
         await this.loadFundOptions();
     },
     methods: {
         async payFundSubscription(fund) {
-            console.log(fund);
-
             const stripe = await loadStripe(
-                "pk_test_51JQJmIDP01ev1pnVKxlhzwoTRpETICHmuMonHTEVtzUVZGCv9SzpsmaBd16GacewvzrRgpueevp27ewmKBU7cKQK007bcbJ05N"
+                'pk_test_51JQJmIDP01ev1pnVKxlhzwoTRpETICHmuMonHTEVtzUVZGCv9SzpsmaBd16GacewvzrRgpueevp27ewmKBU7cKQK007bcbJ05N'
             );
-            console.log("Goint to pay for fund");
             const response = await stripe.redirectToCheckout({
                 lineItems: [
                     {
@@ -133,18 +130,16 @@ export default {
                         quantity: 1,
                     },
                 ],
-                mode: "payment",
-                successUrl: "http://localhost:8080/myfunds?status=0",
-                cancelUrl: "http://localhost:8080/myfunds?status=1",
+                mode: 'payment',
+                successUrl: 'http://localhost:8080/myfunds?status=0',
+                cancelUrl: 'http://localhost:8080/myfunds?status=1',
             });
-            console.log("PAYMENT RESPONE");
-            console.log(response);
         },
         async loadFundOptions() {
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem('token');
 
             const fundOptions = {
-                method: "get",
+                method: 'get',
                 url: `fund-options/`,
                 headers: {
                     Authorization: `Token ${token}`,
@@ -158,7 +153,7 @@ export default {
 
                 // Sort the list descending.
                 options = options.sort(function(a, b) {
-                    return b["duration"] - a["duration"];
+                    return b['duration'] - a['duration'];
                 });
 
                 // Keep the fund options to use when changing plans.
@@ -166,14 +161,15 @@ export default {
                 // Start loading the user funds
                 this.loadFunds();
             } catch (error) {
-                console.log("Error getting fund options " + error);
+                console.log(error);
+                this.$toast.error('Error getting fund options ');
             }
         },
         async verifyFundPayment(fund) {
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem('token');
 
             const verifyFund = {
-                method: "post",
+                method: 'post',
                 url: `verify-fund/${fund.id}/`,
                 headers: {
                     Authorization: `Token ${token}`,
@@ -181,20 +177,19 @@ export default {
             };
             try {
                 const response = await axios(verifyFund);
-                this.$toast.success("Successfully verified fund");
+                this.$toast.success('Successfully verified fund');
                 this.loadFunds();
-                console.log(response);
             } catch (error) {
-                this.$toast.error("Error verifying fund ");
-                console.log("Error verifying fund " + error);
+                console.log('Error verifying fund ' + error);
+                this.$toast.error('Error verifying fund ');
             }
         },
         async loadFunds() {
-            const user = JSON.parse(localStorage.getItem("user"));
-            const token = localStorage.getItem("token");
+            const user = JSON.parse(localStorage.getItem('user'));
+            const token = localStorage.getItem('token');
 
             const loadUserFunds = {
-                method: "get",
+                method: 'get',
                 url: `funder/${user.id}/`,
                 headers: {
                     Authorization: `Token ${token}`,
@@ -202,12 +197,9 @@ export default {
             };
             try {
                 let { data } = await axios(loadUserFunds);
-                console.log("FUNDS");
-                console.log(data);
                 let formattedFunds = [];
                 data.forEach((fund) => {
-                    const startDate = fund.started.split("T")[0];
-                    console.log(startDate);
+                    const startDate = fund.started.split('T')[0];
                     formattedFunds.push({
                         id: fund.id,
                         amount: fund.amount,
@@ -220,15 +212,15 @@ export default {
                     });
                 });
                 this.funds = formattedFunds;
-                console.log(this.funds);
             } catch (error) {
-                console.log("Error " + error);
+                console.log(error);
+                this.$toast.error('Error loading user funds ');
             }
         },
         getPlanWithID(id) {
             for (let i = 0; i < this.fundOptions.length; i++) {
                 let fundOption = this.fundOptions[i];
-                if (fundOption["id"] == id) {
+                if (fundOption['id'] == id) {
                     return fundOption;
                 }
             }
@@ -241,21 +233,16 @@ export default {
                 slot.expand(!slot.isExpanded);
             }
 
-            console.log(fund);
             let amount = parseFloat(fund.amount);
             let interestRate = parseFloat(fund.option.interest_rate) / 100;
             let terms = parseInt(fund.option.duration);
             let paymentDate = new Date(fund.started);
-            console.log(paymentDate);
-            console.log(typeof paymentDate);
 
             //Calculate the per month interest rate
             let monthlyRate = interestRate / 12;
-            console.log("MONTHLY RATE : " + monthlyRate);
 
             //Calculate the payment
             let payment = amount * (monthlyRate / (1 - Math.pow(1 + monthlyRate, -terms)));
-            console.log("PAYMENT : " + payment);
 
             let amortizationData = [];
             for (var count = 0; count < terms; ++count) {
@@ -267,31 +254,30 @@ export default {
                 let monthlyPrincipal = 0;
 
                 //display the month number in col 1 using the loop count variable
-                const options = { day: "numeric", month: "long", year: "numeric" };
-                row["number"] = new Intl.DateTimeFormat("en-US", options).format(paymentDate);
+                const options = { day: 'numeric', month: 'long', year: 'numeric' };
+                row['number'] = new Intl.DateTimeFormat('en-US', options).format(paymentDate);
                 paymentDate.setMonth(paymentDate.getMonth() + 1);
 
                 //code for displaying in loop amount
-                row["amount"] = amount.toFixed(2);
+                row['amount'] = amount.toFixed(2);
 
                 //calc the in-loop interest amount and display
                 interest = amount * monthlyRate;
-                row["interest"] = interest.toFixed(2);
+                row['interest'] = interest.toFixed(2);
 
                 //calc the in-loop monthly principal and display
                 monthlyPrincipal = payment - interest;
-                row["principal"] = monthlyPrincipal.toFixed(2);
+                row['principal'] = monthlyPrincipal.toFixed(2);
 
                 //update the amount for each loop iteration
                 amount = amount - monthlyPrincipal;
 
                 amortizationData.push(row);
             }
-            console.log(amortizationData);
 
-            this.currentAmortization["monthly_payment"] = payment.toFixed(2);
-            this.currentAmortization["total_payment"] = (payment * terms).toFixed(2);
-            this.currentAmortization["table"] = amortizationData;
+            this.currentAmortization['monthly_payment'] = payment.toFixed(2);
+            this.currentAmortization['total_payment'] = (payment * terms).toFixed(2);
+            this.currentAmortization['table'] = amortizationData;
         },
     },
 };
