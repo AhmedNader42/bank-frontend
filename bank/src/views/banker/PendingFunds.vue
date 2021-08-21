@@ -14,7 +14,9 @@
                     <v-toolbar-title>Pending Funds</v-toolbar-title>
                     <v-spacer></v-spacer>
 
-                    <v-toolbar-title class="text-info">Bank Balance : {{ balance }}$</v-toolbar-title>
+                    <v-toolbar-title class="text-info"
+                        >Bank Balance : {{ balance }}$</v-toolbar-title
+                    >
                     <v-spacer></v-spacer>
                     <v-toolbar-title class="text-success">In : +{{ in_flow }}$</v-toolbar-title>
                     <v-spacer></v-spacer>
@@ -30,7 +32,12 @@
                         <p>started => {{ item.started }}</p>
                         <p>Generated outflow => {{ item.outflow_increase }}</p>
                     </v-card-text>
-                    <semipolar-spinner v-if="loading" :animation-duration="2000" :size="65" color="#ff1d5e" />
+                    <semipolar-spinner
+                        v-if="loading"
+                        :animation-duration="2000"
+                        :size="65"
+                        color="#ff1d5e"
+                    />
                     <v-card-actions v-if="!loading">
                         <v-btn text color="blue accent-4" @click="makeDecision(item, 2)">
                             Approve
@@ -46,10 +53,10 @@
 </template>
 
 <script>
-import axios from "axios";
-import { SemipolarSpinner } from "epic-spinners";
+import axios from 'axios';
+import { SemipolarSpinner } from 'epic-spinners';
 export default {
-    name: "Funds",
+    name: 'Funds',
     components: {
         SemipolarSpinner,
     },
@@ -63,35 +70,42 @@ export default {
             loading: false,
             fundHeaders: [
                 {
-                    text: "Amount",
-                    align: "start",
+                    text: 'Amount',
+                    align: 'start',
                     sortable: true,
-                    value: "amount",
+                    value: 'amount',
                 },
-                { text: "Started", value: "started" },
-                { text: "Generated Outflow", value: "outflow_increase" },
-                { text: "Status", value: "status" },
-                { text: "", value: "data-table-expand" },
+                { text: 'Started', value: 'started' },
+                { text: 'Generated Outflow', value: 'outflow_increase' },
+                { text: 'Status', value: 'status' },
+                { text: '', value: 'data-table-expand' },
             ],
             fundStatus: {
-                1: "PENDING",
-                2: "APPROVED",
-                3: "DENIED",
+                1: 'PENDING',
+                2: 'APPROVED',
+                3: 'DENIED',
             },
             expanded: [],
             singleExpand: true,
         };
     },
     async mounted() {
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (token === null || user === null) {
+            this.$router.push('/login');
+            return;
+        }
+
         this.refreshBankBalance();
         await this.loadFundOptions();
     },
     methods: {
         async loadFundOptions() {
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem('token');
 
             const fundOptions = {
-                method: "get",
+                method: 'get',
                 url: `fund-options/`,
                 headers: {
                     Authorization: `Token ${token}`,
@@ -105,7 +119,7 @@ export default {
 
                 // Sort the list descending.
                 options = options.sort(function(a, b) {
-                    return b["duration"] - a["duration"];
+                    return b['duration'] - a['duration'];
                 });
 
                 // Keep the fund options to use when changing plans.
@@ -114,16 +128,16 @@ export default {
                 // Start loading the user funds
                 this.loadPendingFunds();
             } catch (error) {
-                console.log("Error getting fund options " + error);
-                this.$toast.error("Error getting fund options!");
+                console.log('Error getting fund options ' + error);
+                this.$toast.error('Error getting fund options!');
             }
         },
         async loadPendingFunds() {
             console.log(this.funds);
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem('token');
 
             const loadUserFunds = {
-                method: "get",
+                method: 'get',
                 url: `funds-pending/`,
                 headers: {
                     Authorization: `Token ${token}`,
@@ -136,7 +150,7 @@ export default {
                     let fundFormatted = {
                         id: fund.id,
                         amount: fund.amount,
-                        started: fund.started.split("T")[0],
+                        started: fund.started.split('T')[0],
                         status: this.fundStatus[fund.status],
                         payment_url: fund.payment_url,
                         option: this.getPlanWithID(fund.option),
@@ -160,25 +174,25 @@ export default {
                 this.funds = formattedFunds;
             } catch (error) {
                 console.log(error);
-                this.$toast.error("Error getting funds!");
+                this.$toast.error('Error getting funds!');
             }
         },
         getPlanWithID(id) {
             for (let i = 0; i < this.fundOptions.length; i++) {
                 let fundOption = this.fundOptions[i];
-                if (fundOption["id"] == id) {
+                if (fundOption['id'] == id) {
                     return fundOption;
                 }
             }
         },
         async makeDecision(fund, decision) {
-            console.log("Deciding on fund " + decision);
+            console.log('Deciding on fund ' + decision);
             console.log(fund);
             this.loading = true;
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem('token');
 
             const applyDecisionRequest = {
-                method: "patch",
+                method: 'patch',
                 url: `funds/${fund.id}/`,
                 headers: {
                     Authorization: `Token ${token}`,
@@ -208,10 +222,10 @@ export default {
             }
         },
         refreshBankBalance() {
-            let token = localStorage.getItem("token");
+            let token = localStorage.getItem('token');
 
             const options = {
-                method: "get",
+                method: 'get',
                 url: `bank-balance/`,
                 headers: {
                     Authorization: `Token ${token}`,
@@ -227,7 +241,7 @@ export default {
                 })
                 .catch((e) => {
                     console.log(e);
-                    this.$toast.error("bank balance Error!");
+                    this.$toast.error('bank balance Error!');
                 });
         },
     },

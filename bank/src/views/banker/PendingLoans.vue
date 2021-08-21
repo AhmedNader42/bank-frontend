@@ -14,7 +14,9 @@
                     <v-toolbar-title>Pending Loans</v-toolbar-title>
                     <v-spacer></v-spacer>
 
-                    <v-toolbar-title class="text-info">Bank Balance : {{ balance }}$</v-toolbar-title>
+                    <v-toolbar-title class="text-info"
+                        >Bank Balance : {{ balance }}$</v-toolbar-title
+                    >
                     <v-spacer></v-spacer>
                     <v-toolbar-title class="text-success">In : +{{ in_flow }}$</v-toolbar-title>
                     <v-spacer></v-spacer>
@@ -30,7 +32,12 @@
                         <p>started => {{ item.started }}</p>
                         <p>Generated inflow => {{ item.inflow_increase }}</p>
                     </v-card-text>
-                    <semipolar-spinner v-if="loading" :animation-duration="2000" :size="65" color="#ff1d5e" />
+                    <semipolar-spinner
+                        v-if="loading"
+                        :animation-duration="2000"
+                        :size="65"
+                        color="#ff1d5e"
+                    />
                     <v-card-actions v-if="!loading">
                         <v-btn text color="blue accent-4" @click="makeDecision(item, 2)">
                             Approve
@@ -46,11 +53,11 @@
 </template>
 
 <script>
-import axios from "axios";
-import { SemipolarSpinner } from "epic-spinners";
+import axios from 'axios';
+import { SemipolarSpinner } from 'epic-spinners';
 
 export default {
-    name: "Loans",
+    name: 'Loans',
     components: {
         SemipolarSpinner,
     },
@@ -64,35 +71,42 @@ export default {
             loading: false,
             loanHeaders: [
                 {
-                    text: "Amount",
-                    align: "start",
+                    text: 'Amount',
+                    align: 'start',
                     sortable: true,
-                    value: "amount",
+                    value: 'amount',
                 },
-                { text: "Started", value: "started" },
-                { text: "Generated inflow", value: "inflow_increase" },
-                { text: "Status", value: "status" },
-                { text: "", value: "data-table-expand" },
+                { text: 'Started', value: 'started' },
+                { text: 'Generated inflow', value: 'inflow_increase' },
+                { text: 'Status', value: 'status' },
+                { text: '', value: 'data-table-expand' },
             ],
             loanStatus: {
-                1: "PENDING",
-                2: "APPROVED",
-                3: "DENIED",
+                1: 'PENDING',
+                2: 'APPROVED',
+                3: 'DENIED',
             },
             expanded: [],
             singleExpand: true,
         };
     },
     async mounted() {
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (token === null || user === null) {
+            this.$router.push('/login');
+            return;
+        }
+
         this.refreshBankBalance();
         await this.loadLoanOptions();
     },
     methods: {
         async loadLoanOptions() {
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem('token');
 
             const loanOptions = {
-                method: "get",
+                method: 'get',
                 url: `loan-options/`,
                 headers: {
                     Authorization: `Token ${token}`,
@@ -106,7 +120,7 @@ export default {
 
                 // Sort the list descending.
                 options = options.sort(function(a, b) {
-                    return b["duration"] - a["duration"];
+                    return b['duration'] - a['duration'];
                 });
 
                 // Keep the loan options to use when changing plans.
@@ -115,15 +129,15 @@ export default {
                 // Start loading the user loans
                 this.loadPendingLoans();
             } catch (error) {
-                console.log("Error getting loan options " + error);
-                this.$toast.error("Error getting loan options!");
+                console.log('Error getting loan options ' + error);
+                this.$toast.error('Error getting loan options!');
             }
         },
         async loadPendingLoans() {
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem('token');
 
             const loadUserLoans = {
-                method: "get",
+                method: 'get',
                 url: `loans-pending/`,
                 headers: {
                     Authorization: `Token ${token}`,
@@ -136,7 +150,7 @@ export default {
                     let loanFormatted = {
                         id: loan.id,
                         amount: loan.amount,
-                        started: loan.started.split("T")[0],
+                        started: loan.started.split('T')[0],
                         status: this.loanStatus[loan.status],
                         payment_url: loan.payment_url,
                         option: this.getPlanWithID(loan.option),
@@ -159,7 +173,7 @@ export default {
                 });
                 this.loans = formattedLoans;
             } catch (error) {
-                this.$toast.error("Error loading loans!");
+                this.$toast.error('Error loading loans!');
                 console.log(error);
             }
         },
@@ -174,17 +188,17 @@ export default {
         getPlanWithID(id) {
             for (let i = 0; i < this.loanOptions.length; i++) {
                 let loanOption = this.loanOptions[i];
-                if (loanOption["id"] == id) {
+                if (loanOption['id'] == id) {
                     return loanOption;
                 }
             }
         },
         async makeDecision(loan, decision) {
             this.loading = true;
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem('token');
 
             const applyDecisionRequest = {
-                method: "patch",
+                method: 'patch',
                 url: `loans/${loan.id}/`,
                 headers: {
                     Authorization: `Token ${token}`,
@@ -207,10 +221,10 @@ export default {
         },
 
         refreshBankBalance() {
-            let token = localStorage.getItem("token");
+            let token = localStorage.getItem('token');
 
             const options = {
-                method: "get",
+                method: 'get',
                 url: `bank-balance/`,
                 headers: {
                     Authorization: `Token ${token}`,
@@ -219,7 +233,7 @@ export default {
 
             axios(options)
                 .then((res) => {
-                    console.log("BALANCE");
+                    console.log('BALANCE');
                     const bank = res.data;
                     console.log(bank);
                     this.balance = bank.total_amount;
@@ -228,7 +242,7 @@ export default {
                 })
                 .catch((e) => {
                     console.log(e);
-                    this.$toast.error("Error getting bank balance!");
+                    this.$toast.error('Error getting bank balance!');
                 });
         },
     },

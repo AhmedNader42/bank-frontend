@@ -16,7 +16,9 @@
         <div class="iCountUp"><ICountUp :delay="delay" :endVal="numberOfLoans" /> Loans</div>
         <v-toolbar class="h1">
             <v-spacer></v-spacer>
-            <div class="text-success"><ICountUp :delay="delay" :endVal="approvedLoans" /> Approved</div>
+            <div class="text-success">
+                <ICountUp :delay="delay" :endVal="approvedLoans" /> Approved
+            </div>
             <v-spacer></v-spacer>
             <div class="text-warning">
                 <ICountUp :delay="delay" :endVal="pendingLoans" />
@@ -29,7 +31,9 @@
         <div class="iCountUp"><ICountUp :delay="delay" :endVal="numberOfFunds" /> Funds</div>
         <v-toolbar class="h1">
             <v-spacer></v-spacer>
-            <div class="text-success"><ICountUp :delay="delay" :endVal="approvedFunds" /> Approved</div>
+            <div class="text-success">
+                <ICountUp :delay="delay" :endVal="approvedFunds" /> Approved
+            </div>
             <v-spacer></v-spacer>
             <div class="text-warning">
                 <ICountUp :delay="delay" :endVal="pendingFunds" />
@@ -43,11 +47,11 @@
 </template>
 
 <script>
-import axios from "axios";
-import ICountUp from "vue-countup-v2";
+import axios from 'axios';
+import ICountUp from 'vue-countup-v2';
 
 export default {
-    name: "CreateFund",
+    name: 'CreateFund',
     components: {
         ICountUp,
     },
@@ -71,14 +75,21 @@ export default {
         };
     },
     async mounted() {
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (token === null || user === null) {
+            this.$router.push('/login');
+            return;
+        }
+
         this.loadSystemReport();
     },
     methods: {
         async loadSystemReport() {
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem('token');
 
             const fundOptions = {
-                method: "get",
+                method: 'get',
                 url: `system-report/`,
                 headers: {
                     Authorization: `Token ${token}`,
@@ -103,8 +114,8 @@ export default {
                 this.approvedFunds = data.approved_funds;
                 this.deniedFunds = data.denied_funds;
             } catch (error) {
-                console.log("Error getting system report " + error);
-                this.$toast.error("Error getting system report!");
+                console.log('Error getting system report ' + error);
+                this.$toast.error('Error getting system report!');
             }
         },
     },
