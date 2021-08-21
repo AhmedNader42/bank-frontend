@@ -15,6 +15,9 @@
                     <router-link to="/create-fund-option" class="nav-link" active-class="active">
                         Create Fund Option
                     </router-link>
+                    <router-link to="/system-report" class="nav-link" active-class="active">
+                        System Report
+                    </router-link>
                 </li>
             </ul>
         </div>
